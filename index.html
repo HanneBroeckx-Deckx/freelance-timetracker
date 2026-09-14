@@ -1,0 +1,1612 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Uurstaat</title>
+<meta name="description" content="Tijdregistratie voor freelancers: apart timen per project of taak, met een dagoverzicht van alles wat je hebt gedaan.">
+<meta name="theme-color" content="#2E4374">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --paper: #EAE7DD;
+    --paper-raised: #F5F3EA;
+    --ink: #1B1D22;
+    --ink-soft: #5B5F6B;
+    --ink-faint: #8B8E97;
+    --rule: #D3CFC0;
+    --accent: #2E4374;
+    --accent-soft: #DCE3EF;
+    --live: #B23A2E;
+    --live-soft: #F3DCD8;
+    --shadow: rgba(27, 29, 34, 0.08);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #15171C;
+      --paper-raised: #1E2127;
+      --ink: #ECE9DF;
+      --ink-soft: #9A9DA8;
+      --ink-faint: #6C6F79;
+      --rule: #2C2F37;
+      --accent: #86A3E0;
+      --accent-soft: #24314A;
+      --live: #E2685C;
+      --live-soft: #3A2220;
+      --shadow: rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #15171C;
+    --paper-raised: #1E2127;
+    --ink: #ECE9DF;
+    --ink-soft: #9A9DA8;
+    --ink-faint: #6C6F79;
+    --rule: #2C2F37;
+    --accent: #86A3E0;
+    --accent-soft: #24314A;
+    --live: #E2685C;
+    --live-soft: #3A2220;
+    --shadow: rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 18px 16px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ---------- auth screen ---------- */
+  .auth-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 340px;
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    border-radius: 6px;
+    padding: 26px 22px;
+    box-shadow: 0 2px 10px var(--shadow);
+  }
+  .auth-sub { font-size: 12.5px; color: var(--ink-soft); margin: -8px 0 18px; }
+
+  /* ---------- header ---------- */
+  header.app-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 4px;
+  }
+  .wordmark {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .wordmark .dot { color: var(--live); }
+  .today-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-transform: lowercase;
+  }
+
+  /* ---------- view tabs ---------- */
+  .view-tabs { display: flex; gap: 6px; }
+  .view-tab {
+    flex: 1;
+    text-align: center;
+    padding: 9px 0;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    color: var(--ink-soft);
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .view-tab.active { background: var(--accent); border-color: var(--accent); color: var(--paper-raised); }
+
+  /* ---------- live panel ---------- */
+  .live-panel {
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 1px 2px var(--shadow);
+  }
+  .live-panel.is-active { border-color: var(--live); }
+  .live-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ink-faint);
+    flex: none;
+  }
+  .live-panel.is-active .live-dot {
+    background: var(--live);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-panel.is-active .live-dot { animation: none; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 45%, transparent); }
+    50% { opacity: 0.75; box-shadow: 0 0 0 5px color-mix(in srgb, var(--live) 15%, transparent); }
+  }
+  .live-project {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .live-project b { color: var(--ink); font-weight: 600; }
+  .live-clock {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 40px;
+    font-weight: 500;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+  }
+  .live-panel:not(.is-active) .live-clock { color: var(--ink-faint); }
+  .live-idle-copy { font-size: 13px; color: var(--ink-soft); }
+  .live-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .live-task-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-bottom: 1px dashed var(--rule);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    padding: 4px 2px;
+  }
+  .live-task-input:focus { outline: none; border-bottom-color: var(--accent); }
+  .live-task-input::placeholder { color: var(--ink-faint); }
+  .btn-stop {
+    flex: none;
+    border: 1px solid var(--live);
+    background: var(--live);
+    color: var(--paper-raised);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    padding: 7px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .btn-stop:hover { opacity: 0.9; }
+
+  /* ---------- section shell ---------- */
+  section.block {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .block-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 0 2px 8px;
+  }
+
+  /* ---------- project ledger rows ---------- */
+  .ledger {
+    border-top: 1px solid var(--rule);
+  }
+  .proj-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 2px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .swatch {
+    width: 10px; height: 10px; border-radius: 50%; flex: none;
+  }
+  .proj-name-wrap { flex: 1; min-width: 0; }
+  .proj-name {
+    font-size: 14.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .proj-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .proj-actions { display: flex; gap: 6px; align-items: center; flex: none; }
+  .icon-btn {
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 13px;
+    padding: 0;
+  }
+  .icon-btn:hover { border-color: var(--ink-faint); }
+  .icon-btn.start { border-color: var(--accent); color: var(--accent); }
+  .icon-btn.stop { border-color: var(--live); background: var(--live); color: var(--paper-raised); }
+  .icon-btn.edit { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; }
+
+  .add-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 2px;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--rule);
+  }
+  .add-row:hover { color: var(--ink); }
+  .add-row .plus {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1px dashed var(--ink-faint);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex: none;
+  }
+
+  /* ---------- inline forms ---------- */
+  .inline-form {
+    padding: 12px 2px 16px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .field-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink-faint);
+  }
+  .text-input, .select-input, .time-input, .date-input {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 3px;
+    padding: 8px 9px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13.5px;
+    width: 100%;
+  }
+  .text-input:focus, .select-input:focus, .time-input:focus, .date-input:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch-pick {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+  }
+  .swatch-pick.picked { border-color: var(--ink); }
+  .form-row { display: flex; gap: 10px; }
+  .form-row > * { flex: 1; }
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn {
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .btn:hover { border-color: var(--ink-faint); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--paper-raised); }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-text {
+    background: none; border: none; color: var(--ink-soft);
+    font-size: 12.5px; cursor: pointer; text-decoration: underline;
+    padding: 4px 0;
+  }
+  .btn-danger { color: var(--live); }
+  .form-error { font-size: 12px; color: var(--live); }
+
+  /* ---------- day log ---------- */
+  .day-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2px 10px;
+  }
+  .day-nav-title {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    text-transform: capitalize;
+  }
+  .nav-btn {
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .day-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 2px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 4px;
+  }
+  .day-total .lbl { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+  .day-total .val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .day-empty {
+    padding: 24px 2px;
+    color: var(--ink-faint);
+    font-size: 13.5px;
+    text-align: center;
+  }
+  .group {
+    padding: 10px 0 2px;
+  }
+  .group-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 2px;
+  }
+  .group-head .proj-name { font-size: 13px; }
+  .group-head .proj-sub { margin-left: auto; }
+  .entry-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 2px 8px 18px;
+    border-bottom: 1px solid var(--rule);
+    cursor: pointer;
+  }
+  .entry-row:hover { background: color-mix(in srgb, var(--paper-raised) 60%, transparent); }
+  .entry-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    flex: none;
+    width: 108px;
+  }
+  .entry-task {
+    flex: 1;
+    font-size: 13px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .entry-task.empty { color: var(--ink-faint); font-style: italic; }
+  .entry-dur {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    flex: none;
+  }
+  .entry-edit {
+    padding: 10px 2px 14px 18px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .manual-add-btn {
+    margin-top: 12px;
+    align-self: flex-start;
+  }
+
+  .offline-note {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 13px;
+    padding: 40px 20px;
+    line-height: 1.5;
+  }
+
+  /* ---------- insights: controls ---------- */
+  .insight-controls { display: flex; gap: 10px; align-items: center; padding-bottom: 12px; flex-wrap: wrap; }
+  .segmented { display: flex; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; flex: none; }
+  .seg-btn {
+    border: none; background: var(--paper-raised); color: var(--ink-soft);
+    font-size: 12.5px; padding: 7px 12px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .seg-btn + .seg-btn { border-left: 1px solid var(--rule); }
+  .seg-btn.active { background: var(--accent); color: var(--paper-raised); }
+  .range-select { width: auto; flex: 1; min-width: 150px; padding: 7px 9px; font-size: 12.5px; }
+
+  /* ---------- insights: chips (legend + filter) ---------- */
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 14px; }
+  .chip {
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid var(--rule); background: var(--paper-raised);
+    border-radius: 20px; padding: 5px 10px 5px 8px; font-size: 12px; color: var(--ink);
+    cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .chip-total { font-family: 'IBM Plex Mono', monospace; color: var(--ink-soft); font-size: 11px; }
+  .chip-off { opacity: 0.4; }
+  .chip-off .chip-total { text-decoration: line-through; }
+
+  /* ---------- insights: stat tiles ---------- */
+  .stat-tiles { display: flex; gap: 10px; padding-bottom: 16px; }
+  .stat-tile { flex: 1; border: 1px solid var(--rule); background: var(--paper-raised); border-radius: 4px; padding: 10px 12px; }
+  .stat-label { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .stat-value { font-size: 20px; font-weight: 500; }
+
+  /* ---------- insights: chart ---------- */
+  .chart-wrap { position: relative; margin-bottom: 8px; }
+  .chart-scroll { overflow-x: auto; }
+  .chart-scroll svg { display: block; }
+  .chart-tooltip {
+    position: absolute; pointer-events: none;
+    background: var(--ink); color: var(--paper);
+    border-radius: 4px; padding: 8px 10px; font-size: 11.5px;
+    box-shadow: 0 2px 8px var(--shadow); z-index: 5; min-width: 130px;
+    transform: translate(-50%, -100%);
+  }
+  .chart-tooltip .tt-head { font-weight: 600; margin-bottom: 4px; }
+  .chart-tooltip .tt-row { display: flex; align-items: center; gap: 6px; padding: 1px 0; white-space: nowrap; }
+  .chart-tooltip .tt-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .chart-tooltip .tt-val { margin-left: auto; font-family: 'IBM Plex Mono', monospace; padding-left: 10px; }
+  .chart-bar-hit { fill: transparent; cursor: pointer; }
+  .chart-bar-hit:hover { fill: color-mix(in srgb, var(--ink) 5%, transparent); }
+  .chart-empty {
+    padding: 32px 2px; text-align: center; color: var(--ink-faint); font-size: 13.5px;
+    border: 1px dashed var(--rule); border-radius: 4px;
+  }
+
+  /* ---------- insights: table ---------- */
+  .table-scroll { overflow-x: auto; }
+  .insight-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .insight-table th, .insight-table td {
+    padding: 7px 8px; border-bottom: 1px solid var(--rule); text-align: right;
+    font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .insight-table th:first-child, .insight-table td:first-child { text-align: left; font-family: 'IBM Plex Sans', sans-serif; }
+  .insight-table thead th { color: var(--ink-soft); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .insight-table td.tot, .insight-table th.tot { font-weight: 600; color: var(--ink); border-left: 1px solid var(--rule); }
+
+  footer.foot {
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-faint);
+    padding-top: 6px;
+  }
+  footer.foot .btn-text { font-size: 11px; padding: 0; }
+</style>
+</head>
+<body>
+
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="wordmark" style="margin-bottom:4px">Uur<span class="dot">&middot;</span>staat</div>
+    <div class="auth-sub">jouw urenregistratie, overal gesynct</div>
+    <div class="field-label">E-mailadres</div>
+    <input class="text-input" id="authEmail" type="email" autocomplete="email" style="margin-bottom:10px">
+    <div class="field-label">Wachtwoord</div>
+    <input class="text-input" id="authPassword" type="password" autocomplete="current-password">
+    <div class="form-error" id="authError" style="display:none;margin-top:8px"></div>
+    <button class="btn btn-primary" id="authSubmit" style="margin-top:14px;width:100%">Inloggen</button>
+    <button class="btn-text" id="authToggle" style="margin-top:10px;display:block;text-align:center;width:100%">Nog geen account? Account aanmaken</button>
+  </div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <header class="app-header">
+    <div class="wordmark">Uur<span class="dot">&middot;</span>staat</div>
+    <div class="today-date" id="headerDate"></div>
+  </header>
+
+  <nav class="view-tabs">
+    <button class="view-tab active" data-view="timer">Timer</button>
+    <button class="view-tab" data-view="insights">Inzichten</button>
+  </nav>
+
+  <div id="timerView">
+    <div id="liveMount"></div>
+
+    <section class="block">
+      <div class="block-title">Projecten</div>
+      <div class="ledger" id="projectList"></div>
+    </section>
+
+    <section class="block">
+      <div class="day-nav">
+        <button class="nav-btn" id="dayPrev" aria-label="Vorige dag">&lsaquo;</button>
+        <div class="day-nav-title" id="dayTitle"></div>
+        <button class="nav-btn" id="dayNext" aria-label="Volgende dag">&rsaquo;</button>
+      </div>
+      <div class="day-total">
+        <span class="lbl">Totaal</span>
+        <span class="val" id="dayTotal">0m</span>
+      </div>
+      <div id="logMount"></div>
+      <button class="btn manual-add-btn" id="manualAddToggle">+ Handmatige invoer</button>
+      <div id="manualFormMount"></div>
+    </section>
+  </div>
+
+  <section class="block" id="insightsView" hidden>
+    <div class="block-title">Inzichten</div>
+    <div class="insight-controls">
+      <div class="segmented" id="groupingSeg">
+        <button class="seg-btn" data-group="day">Dag</button>
+        <button class="seg-btn" data-group="week">Week</button>
+        <button class="seg-btn" data-group="month">Maand</button>
+      </div>
+      <select class="select-input range-select" id="rangeSelect"></select>
+    </div>
+    <div class="chip-row" id="chipRow"></div>
+    <div class="stat-tiles" id="statTiles"></div>
+    <div class="chart-wrap" id="chartArea">
+      <div class="chart-scroll" id="chartMount"></div>
+      <div class="chart-tooltip" id="chartTooltip" hidden></div>
+    </div>
+    <div id="tableMount" hidden></div>
+    <button class="btn-text" id="viewToggleBtn">Bekijk als tabel</button>
+  </section>
+
+  <footer class="foot">
+    Uurstaat &middot; <span id="logoutInfo"></span> &middot; <button class="btn-text" id="logoutBtn">uitloggen</button>
+  </footer>
+</div>
+
+<script type="module">
+import { firebaseConfig } from "./firebase-config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
+  onSnapshot, query, where, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+var firebaseApp = initializeApp(firebaseConfig);
+var auth = getAuth(firebaseApp);
+var firestore = getFirestore(firebaseApp);
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").catch(function () {});
+  });
+}
+
+// ---------------- thin Firestore adapter ----------------
+// Mirrors the small subset of a collection/query API the app below is
+// written against, so the app logic never touches the Firebase SDK shape
+// directly: col.doc(id).set/update/delete, col.add(data),
+// col.where(...).orderBy(...).onSnapshot(next, err).
+function makeCollection(path) {
+  var collRef = collection(firestore, path);
+  return {
+    doc: function (id) {
+      var ref = id ? doc(firestore, path, id) : doc(collRef);
+      return {
+        id: ref.id,
+        set: function (data) { return setDoc(ref, data); },
+        update: function (data) { return updateDoc(ref, data); },
+        delete: function () { return deleteDoc(ref); }
+      };
+    },
+    add: function (data) { return addDoc(collRef, data); },
+    where: function (f, op, v) { return makeQuery(query(collRef, where(f, op, v))); },
+    orderBy: function (f, dir) { return makeQuery(query(collRef, orderBy(f, dir || "asc"))); }
+  };
+}
+function makeQuery(q) {
+  return {
+    where: function (f, op, v) { return makeQuery(query(q, where(f, op, v))); },
+    orderBy: function (f, dir) { return makeQuery(query(q, orderBy(f, dir || "asc"))); },
+    onSnapshot: function (next, errCb) { return onSnapshot(q, next, errCb || function () {}); }
+  };
+}
+
+// ================================================================
+// Below this line: the app itself (unchanged from the Claude Artifact
+// version, aside from the storage adapter above replacing claude.use("db")).
+// ================================================================
+(function () {
+  "use strict";
+
+  // ---------------- utilities ----------------
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  function ymd(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  function todayStr() { return ymd(new Date()); }
+  function shiftDate(dateStr, delta) {
+    var d = new Date(dateStr + "T12:00:00");
+    d.setDate(d.getDate() + delta);
+    return ymd(d);
+  }
+  function shiftMonth(ymStr, delta) {
+    var parts = ymStr.split("-");
+    var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1 + delta, 1);
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1);
+  }
+  function mondayOf(dateStr) {
+    var d = new Date(dateStr + "T12:00:00");
+    var back = (d.getDay() + 6) % 7;
+    d.setDate(d.getDate() - back);
+    return ymd(d);
+  }
+  function fmtClock(ms) {
+    var totalSec = Math.max(0, Math.floor(ms / 1000));
+    var h = Math.floor(totalSec / 3600);
+    var m = Math.floor((totalSec % 3600) / 60);
+    var s = totalSec % 60;
+    if (h > 0) return h + ":" + pad2(m) + ":" + pad2(s);
+    return m + ":" + pad2(s);
+  }
+  function fmtDuration(sec) {
+    sec = Math.max(0, Math.round(sec));
+    var h = Math.floor(sec / 3600);
+    var m = Math.floor((sec % 3600) / 60);
+    if (h > 0) return h + "u " + m + "m";
+    return m + "m";
+  }
+  function fmtTime(ts) {
+    return new Date(ts).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit", hour12: false });
+  }
+  function fmtDayTitle(dateStr) {
+    var t = todayStr();
+    if (dateStr === t) return "vandaag";
+    if (dateStr === shiftDate(t, -1)) return "gisteren";
+    var d = new Date(dateStr + "T12:00:00");
+    return d.toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "short" });
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function toEntry(doc) { var d = doc.data(); return Object.assign({ id: doc.id }, d); }
+
+  // Validated categorical palette (fixed order, CVD-checked) — same slots
+  // drive project dots, log groups and the insights chart, light/dark aware.
+  var PALETTE_LIGHT = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"];
+  var PALETTE_DARK  = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+  function isDarkMode() {
+    var explicit = document.documentElement.getAttribute("data-theme");
+    if (explicit === "dark") return true;
+    if (explicit === "light") return false;
+    return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  function seriesColor(idx, fallbackHex) {
+    if (typeof idx === "number" && idx >= 0 && idx < PALETTE_LIGHT.length) {
+      return isDarkMode() ? PALETTE_DARK[idx] : PALETTE_LIGHT[idx];
+    }
+    return fallbackHex || PALETTE_LIGHT[0];
+  }
+
+  // ---------------- state ----------------
+  var projectsCol = null, entriesCol = null;
+  var projects = [];
+  var todayEntries = [];
+  var logEntries = [];
+  var selectedDate = todayStr();
+  var logUnsub = null;
+  var tickHandle = null;
+
+  var ui = {
+    addProjectOpen: false,
+    editingProjectId: null,
+    editingEntryId: null,
+    manualFormOpen: false,
+    pendingIdx: 0
+  };
+
+  // ---------------- header + tabs ----------------
+  document.getElementById("headerDate").textContent =
+    new Date().toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" });
+
+  document.querySelectorAll(".view-tab").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var v = btn.getAttribute("data-view");
+      document.querySelectorAll(".view-tab").forEach(function (b) { b.classList.toggle("active", b === btn); });
+      document.getElementById("timerView").hidden = v !== "timer";
+      document.getElementById("insightsView").hidden = v !== "insights";
+    });
+  });
+
+  // ---------------- derived (timer view) ----------------
+  function activeEntry() {
+    for (var i = 0; i < todayEntries.length; i++) {
+      if (todayEntries[i].endTs == null) return todayEntries[i];
+    }
+    return null;
+  }
+  function todaySubtotal(projectId) {
+    var sec = 0;
+    var now = Date.now();
+    todayEntries.forEach(function (e) {
+      if (e.projectId !== projectId) return;
+      if (e.endTs == null) sec += (now - e.startTs) / 1000;
+      else sec += e.durationSec;
+    });
+    return sec;
+  }
+
+  // ---------------- render: live panel ----------------
+  function renderLive() {
+    var mount = document.getElementById("liveMount");
+    var ent = activeEntry();
+    if (!ent) {
+      mount.innerHTML =
+        '<div class="live-panel">' +
+          '<div class="live-top"><div class="live-dot"></div><div class="live-idle-copy">Geen timer actief &mdash; kies hieronder een project</div></div>' +
+          '<div class="live-clock">0:00</div>' +
+        "</div>";
+      return;
+    }
+    mount.innerHTML =
+      '<div class="live-panel is-active">' +
+        '<div class="live-top"><div class="live-dot"></div><div class="live-project">bezig met <b>' + esc(ent.projectName) + "</b></div></div>" +
+        '<div class="live-clock" id="liveClock">0:00</div>' +
+        '<div class="live-row">' +
+          '<input class="live-task-input" id="liveTaskInput" type="text" placeholder="waar werk je nu aan? (optioneel)" value="' + esc(ent.task || "") + '">' +
+          '<button class="btn-stop" id="liveStopBtn">STOP</button>' +
+        "</div>" +
+      "</div>";
+
+    document.getElementById("liveStopBtn").addEventListener("click", function () { stopEntry(ent); });
+    var taskInput = document.getElementById("liveTaskInput");
+    var saveTask = function () {
+      var v = taskInput.value.trim();
+      if (v !== (ent.task || "")) entriesCol.doc(ent.id).update({ task: v }).catch(function () {});
+    };
+    taskInput.addEventListener("blur", saveTask);
+    taskInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { taskInput.blur(); } });
+
+    tickLive();
+  }
+  function tickLive() {
+    if (tickHandle) clearInterval(tickHandle);
+    tickHandle = setInterval(function () {
+      var ent = activeEntry();
+      var el = document.getElementById("liveClock");
+      if (!ent || !el) { clearInterval(tickHandle); return; }
+      el.textContent = fmtClock(Date.now() - ent.startTs);
+    }, 1000);
+    var ent = activeEntry();
+    var el = document.getElementById("liveClock");
+    if (ent && el) el.textContent = fmtClock(Date.now() - ent.startTs);
+  }
+
+  // ---------------- render: project ledger ----------------
+  function renderProjects() {
+    var mount = document.getElementById("projectList");
+    var active = activeEntry();
+    var html = "";
+    var visible = projects.filter(function (p) { return !p.archived; });
+
+    visible.forEach(function (p) {
+      var isActive = active && active.projectId === p.id;
+      var sub = todaySubtotal(p.id);
+      if (ui.editingProjectId === p.id) {
+        html += projectEditFormHtml(p);
+        return;
+      }
+      html +=
+        '<div class="proj-row">' +
+          '<div class="swatch" style="background:' + seriesColor(p.colorIdx, p.color) + '"></div>' +
+          '<div class="proj-name-wrap"><div class="proj-name">' + esc(p.name) + "</div>" +
+          '<div class="proj-sub">vandaag ' + fmtDuration(sub) + "</div></div>" +
+          '<div class="proj-actions">' +
+            '<button class="icon-btn edit" data-edit-proj="' + p.id + '" aria-label="Bewerken">&#9998;</button>' +
+            '<button class="icon-btn ' + (isActive ? "stop" : "start") + '" data-toggle-proj="' + p.id + '" aria-label="' + (isActive ? "Stop" : "Start") + '">' +
+              (isActive ? "&#9724;" : "&#9654;") +
+            "</button>" +
+          "</div>" +
+        "</div>";
+    });
+
+    if (ui.addProjectOpen) {
+      html += projectEditFormHtml(null);
+    } else {
+      html += '<div class="add-row" id="addProjectRow"><span class="plus">+</span> Nieuw project</div>';
+    }
+
+    mount.innerHTML = html;
+
+    mount.querySelectorAll("[data-toggle-proj]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var pid = btn.getAttribute("data-toggle-proj");
+        var proj = projects.find(function (p) { return p.id === pid; });
+        var active = activeEntry();
+        if (active && active.projectId === pid) stopEntry(active);
+        else startTimer(proj);
+      });
+    });
+    mount.querySelectorAll("[data-edit-proj]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        ui.editingProjectId = btn.getAttribute("data-edit-proj");
+        ui.addProjectOpen = false;
+        renderProjects();
+      });
+    });
+    var addRow = document.getElementById("addProjectRow");
+    if (addRow) addRow.addEventListener("click", function () {
+      ui.addProjectOpen = true;
+      ui.editingProjectId = null;
+      ui.pendingIdx = projects.length % PALETTE_LIGHT.length;
+      renderProjects();
+    });
+  }
+
+  function projectEditFormHtml(p) {
+    var isNew = !p;
+    var name = isNew ? "" : p.name;
+    var idx = isNew ? ui.pendingIdx : (typeof p.colorIdx === "number" ? p.colorIdx : 0);
+    var idAttr = isNew ? "new" : p.id;
+    var swatches = PALETTE_LIGHT.map(function (hex, i) {
+      return '<div class="swatch-pick ' + (i === idx ? "picked" : "") + '" style="background:' + hex + '" data-idx="' + i + '"></div>';
+    }).join("");
+    return (
+      '<div class="inline-form" data-form-for="' + idAttr + '">' +
+        '<div class="field-label">Projectnaam</div>' +
+        '<input class="text-input" id="pfName" type="text" value="' + esc(name) + '" placeholder="bv. Klant De Vries">' +
+        '<div class="field-label">Kleur</div>' +
+        '<div class="swatch-row" id="pfSwatchRow">' + swatches + "</div>" +
+        '<div class="form-error" id="pfError" style="display:none"></div>' +
+        '<div class="form-actions">' +
+          (isNew ? "" : '<button class="btn btn-text btn-danger" id="pfArchive">' + (p.archived ? "Herstellen" : "Archiveren") + "</button>") +
+          '<button class="btn" id="pfCancel">Annuleren</button>' +
+          '<button class="btn btn-primary" id="pfSave">Bewaren</button>' +
+        "</div>" +
+      "</div>"
+    );
+  }
+
+  function wireProjectForm(p) {
+    var isNew = !p;
+    var row = document.querySelector('[data-form-for="' + (isNew ? "new" : p.id) + '"]');
+    if (!row) return;
+    var chosenIdx = isNew ? ui.pendingIdx : (typeof p.colorIdx === "number" ? p.colorIdx : 0);
+    row.querySelectorAll("[data-idx]").forEach(function (sw) {
+      sw.addEventListener("click", function () {
+        chosenIdx = parseInt(sw.getAttribute("data-idx"), 10);
+        row.querySelectorAll("[data-idx]").forEach(function (s) { s.classList.remove("picked"); });
+        sw.classList.add("picked");
+      });
+    });
+    document.getElementById("pfCancel").addEventListener("click", function () {
+      ui.addProjectOpen = false; ui.editingProjectId = null; renderProjects();
+    });
+    document.getElementById("pfSave").addEventListener("click", function () {
+      var name = document.getElementById("pfName").value.trim();
+      var err = document.getElementById("pfError");
+      if (!name) { err.textContent = "Geef het project een naam."; err.style.display = "block"; return; }
+      if (isNew) {
+        projectsCol.add({ name: name, color: PALETTE_LIGHT[chosenIdx], colorIdx: chosenIdx, archived: false, createdAt: Date.now() })
+          .then(function () { ui.addProjectOpen = false; renderProjects(); })
+          .catch(function () { err.textContent = "Opslaan mislukt, probeer opnieuw."; err.style.display = "block"; });
+      } else {
+        projectsCol.doc(p.id).update({ name: name, color: PALETTE_LIGHT[chosenIdx], colorIdx: chosenIdx })
+          .then(function () { ui.editingProjectId = null; renderProjects(); })
+          .catch(function () { err.textContent = "Opslaan mislukt, probeer opnieuw."; err.style.display = "block"; });
+      }
+    });
+    if (!isNew) {
+      document.getElementById("pfArchive").addEventListener("click", function () {
+        projectsCol.doc(p.id).update({ archived: !p.archived })
+          .then(function () { ui.editingProjectId = null; renderProjects(); });
+      });
+    }
+  }
+
+  // ---------------- timer actions ----------------
+  function startTimer(project) {
+    var now = Date.now();
+    var active = activeEntry();
+    var chain = Promise.resolve();
+    if (active) chain = stopEntryPromise(active, now);
+    chain.then(function () {
+      return entriesCol.add({
+        projectId: project.id,
+        projectName: project.name,
+        projectColor: project.color,
+        projectColorIdx: typeof project.colorIdx === "number" ? project.colorIdx : null,
+        task: "",
+        startTs: now,
+        endTs: null,
+        durationSec: 0,
+        date: todayStr()
+      });
+    }).catch(function () {});
+  }
+  function stopEntryPromise(ent, now) {
+    var durationSec = Math.max(0, Math.round((now - ent.startTs) / 1000));
+    return entriesCol.doc(ent.id).update({ endTs: now, durationSec: durationSec });
+  }
+  function stopEntry(ent) { stopEntryPromise(ent, Date.now()).catch(function () {}); }
+
+  // ---------------- render: day log ----------------
+  function renderLog() {
+    document.getElementById("dayTitle").textContent = fmtDayTitle(selectedDate);
+    document.getElementById("dayPrev").onclick = function () { changeDate(shiftDate(selectedDate, -1)); };
+    var nextBtn = document.getElementById("dayNext");
+    var isToday = selectedDate === todayStr();
+    nextBtn.disabled = isToday;
+    nextBtn.onclick = isToday ? null : function () { changeDate(shiftDate(selectedDate, 1)); };
+
+    var now = Date.now();
+    var total = 0;
+    var byProject = {};
+    var order = [];
+    logEntries.forEach(function (e) {
+      var live = e.endTs == null ? (now - e.startTs) / 1000 : e.durationSec;
+      total += live;
+      if (!byProject[e.projectId]) { byProject[e.projectId] = { name: e.projectName, color: e.projectColor, colorIdx: e.projectColorIdx, entries: [], sub: 0 }; order.push(e.projectId); }
+      byProject[e.projectId].entries.push(e);
+      byProject[e.projectId].sub += live;
+    });
+    document.getElementById("dayTotal").textContent = fmtDuration(total);
+
+    var mount = document.getElementById("logMount");
+    if (!logEntries.length) {
+      mount.innerHTML = '<div class="day-empty">Nog niets gelogd op deze dag.</div>';
+      return;
+    }
+
+    var html = "";
+    order.forEach(function (pid) {
+      var g = byProject[pid];
+      html += '<div class="group">' +
+        '<div class="group-head"><div class="swatch" style="background:' + seriesColor(g.colorIdx, g.color) + '"></div>' +
+          '<div class="proj-name">' + esc(g.name) + "</div>" +
+          '<div class="proj-sub">' + fmtDuration(g.sub) + "</div></div>";
+      g.entries.forEach(function (e) {
+        if (ui.editingEntryId === e.id) {
+          html += entryEditFormHtml(e);
+          return;
+        }
+        var running = e.endTs == null;
+        var dur = running ? (now - e.startTs) / 1000 : e.durationSec;
+        var timeLabel = fmtTime(e.startTs) + "&ndash;" + (running ? "nu" : fmtTime(e.endTs));
+        html += '<div class="entry-row" data-edit-entry="' + e.id + '">' +
+          '<div class="entry-time">' + timeLabel + "</div>" +
+          '<div class="entry-task ' + (e.task ? "" : "empty") + '">' + esc(e.task || "algemeen") + "</div>" +
+          '<div class="entry-dur">' + fmtDuration(dur) + "</div>" +
+        "</div>";
+      });
+      html += "</div>";
+    });
+    mount.innerHTML = html;
+
+    mount.querySelectorAll("[data-edit-entry]").forEach(function (row) {
+      row.addEventListener("click", function () {
+        ui.editingEntryId = row.getAttribute("data-edit-entry");
+        renderLog();
+      });
+    });
+    if (ui.editingEntryId) wireEntryEditForm();
+  }
+
+  function entryEditFormHtml(e) {
+    var running = e.endTs == null;
+    if (running) {
+      return '<div class="entry-edit" data-entry-form="' + e.id + '">' +
+        '<div class="live-idle-copy">Deze timer loopt nog. Stop hem via het paneel hierboven, of verwijder deze sessie.</div>' +
+        '<div class="form-actions">' +
+          '<button class="btn btn-text btn-danger" id="efDelete">Verwijderen</button>' +
+          '<button class="btn" id="efCancel">Annuleren</button>' +
+        "</div>" +
+      "</div>";
+    }
+    return '<div class="entry-edit" data-entry-form="' + e.id + '">' +
+      '<div class="form-row">' +
+        '<div><div class="field-label">Start</div><input class="time-input" id="efStart" type="time" value="' + fmtTime(e.startTs) + '"></div>' +
+        '<div><div class="field-label">Einde</div><input class="time-input" id="efEnd" type="time" value="' + fmtTime(e.endTs) + '"></div>' +
+      "</div>" +
+      '<div><div class="field-label">Taak</div><input class="text-input" id="efTask" type="text" value="' + esc(e.task || "") + '" placeholder="omschrijving (optioneel)"></div>' +
+      '<div class="form-error" id="efError" style="display:none"></div>' +
+      '<div class="form-actions">' +
+        '<button class="btn btn-text btn-danger" id="efDelete">Verwijderen</button>' +
+        '<button class="btn" id="efCancel">Annuleren</button>' +
+        '<button class="btn btn-primary" id="efSave">Bewaren</button>' +
+      "</div>" +
+    "</div>";
+  }
+
+  function wireEntryEditForm() {
+    var e = logEntries.find(function (x) { return x.id === ui.editingEntryId; });
+    if (!e) return;
+    document.getElementById("efCancel").addEventListener("click", function () { ui.editingEntryId = null; renderLog(); });
+    document.getElementById("efDelete").addEventListener("click", function () {
+      entriesCol.doc(e.id).delete().then(function () { ui.editingEntryId = null; renderLog(); });
+    });
+    var saveBtn = document.getElementById("efSave");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function () {
+        var startVal = document.getElementById("efStart").value;
+        var endVal = document.getElementById("efEnd").value;
+        var task = document.getElementById("efTask").value.trim();
+        var err = document.getElementById("efError");
+        if (!startVal || !endVal) { err.textContent = "Vul begin- en eindtijd in."; err.style.display = "block"; return; }
+        var startTs = new Date(selectedDate + "T" + startVal).getTime();
+        var endTs = new Date(selectedDate + "T" + endVal).getTime();
+        if (endTs <= startTs) { err.textContent = "Eindtijd moet na begintijd liggen."; err.style.display = "block"; return; }
+        entriesCol.doc(e.id).update({ startTs: startTs, endTs: endTs, durationSec: Math.round((endTs - startTs) / 1000), task: task })
+          .then(function () { ui.editingEntryId = null; renderLog(); })
+          .catch(function () { err.textContent = "Opslaan mislukt, probeer opnieuw."; err.style.display = "block"; });
+      });
+    }
+  }
+
+  function changeDate(newDate) {
+    selectedDate = newDate;
+    ui.editingEntryId = null;
+    ui.manualFormOpen = false;
+    subscribeLog();
+    renderManualForm();
+  }
+
+  // ---------------- manual entry form ----------------
+  function renderManualForm() {
+    var mount = document.getElementById("manualFormMount");
+    var toggleBtn = document.getElementById("manualAddToggle");
+    if (!ui.manualFormOpen) { mount.innerHTML = ""; toggleBtn.style.display = ""; return; }
+    toggleBtn.style.display = "none";
+    var active = projects.filter(function (p) { return !p.archived; });
+    if (!active.length) {
+      mount.innerHTML = '<div class="inline-form"><div class="form-error" style="display:block">Voeg eerst een project toe.</div><div class="form-actions"><button class="btn" id="mfCancel">Sluiten</button></div></div>';
+      document.getElementById("mfCancel").addEventListener("click", function () { ui.manualFormOpen = false; renderManualForm(); });
+      return;
+    }
+    var options = active.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + "</option>"; }).join("");
+    mount.innerHTML =
+      '<div class="inline-form">' +
+        '<div class="field-label">Project</div>' +
+        '<select class="select-input" id="mfProject">' + options + "</select>" +
+        '<div class="form-row">' +
+          '<div><div class="field-label">Datum</div><input class="date-input" id="mfDate" type="date" value="' + selectedDate + '"></div>' +
+        "</div>" +
+        '<div class="form-row">' +
+          '<div><div class="field-label">Start</div><input class="time-input" id="mfStart" type="time"></div>' +
+          '<div><div class="field-label">Einde</div><input class="time-input" id="mfEnd" type="time"></div>' +
+        "</div>" +
+        '<div><div class="field-label">Taak</div><input class="text-input" id="mfTask" type="text" placeholder="omschrijving (optioneel)"></div>' +
+        '<div class="form-error" id="mfError" style="display:none"></div>' +
+        '<div class="form-actions">' +
+          '<button class="btn" id="mfCancel">Annuleren</button>' +
+          '<button class="btn btn-primary" id="mfSave">Toevoegen</button>' +
+        "</div>" +
+      "</div>";
+
+    document.getElementById("mfCancel").addEventListener("click", function () { ui.manualFormOpen = false; renderManualForm(); });
+    document.getElementById("mfSave").addEventListener("click", function () {
+      var pid = document.getElementById("mfProject").value;
+      var proj = active.find(function (p) { return p.id === pid; });
+      var date = document.getElementById("mfDate").value;
+      var startVal = document.getElementById("mfStart").value;
+      var endVal = document.getElementById("mfEnd").value;
+      var task = document.getElementById("mfTask").value.trim();
+      var err = document.getElementById("mfError");
+      if (!date || !startVal || !endVal) { err.textContent = "Vul datum, begin- en eindtijd in."; err.style.display = "block"; return; }
+      var startTs = new Date(date + "T" + startVal).getTime();
+      var endTs = new Date(date + "T" + endVal).getTime();
+      if (endTs <= startTs) { err.textContent = "Eindtijd moet na begintijd liggen."; err.style.display = "block"; return; }
+      entriesCol.add({
+        projectId: proj.id, projectName: proj.name, projectColor: proj.color, projectColorIdx: typeof proj.colorIdx === "number" ? proj.colorIdx : null,
+        task: task, startTs: startTs, endTs: endTs,
+        durationSec: Math.round((endTs - startTs) / 1000), date: date
+      }).then(function () {
+        ui.manualFormOpen = false;
+        renderManualForm();
+        if (date !== selectedDate) changeDate(date);
+      }).catch(function () { err.textContent = "Opslaan mislukt, probeer opnieuw."; err.style.display = "block"; });
+    });
+  }
+  document.getElementById("manualAddToggle").addEventListener("click", function () {
+    ui.manualFormOpen = true; renderManualForm();
+  });
+
+  // ---------------- subscriptions (timer view) ----------------
+  function subscribeLog() {
+    if (logUnsub) { logUnsub(); logUnsub = null; }
+    if (selectedDate === todayStr()) {
+      logEntries = todayEntries;
+      renderLog();
+      return;
+    }
+    var q = entriesCol.where("date", "==", selectedDate).orderBy("startTs", "asc");
+    logUnsub = q.onSnapshot(function (snap) {
+      logEntries = snap.docs.map(toEntry);
+      renderLog();
+    }, function () {
+      logEntries = [];
+      renderLog();
+    });
+  }
+
+  // ================================================================
+  // Insights view — grouped/filterable chart over day / week / month
+  // ================================================================
+  var insight = {
+    grouping: "day",
+    rangeCountByGrouping: { day: 14, week: 8, month: 6 },
+    excluded: {},
+    entries: [],
+    unsub: null,
+    viewMode: "chart"
+  };
+  var tooltipBucketKey = null;
+
+  var RANGE_OPTIONS = { day: [7, 14, 30], week: [4, 8, 12], month: [3, 6, 12] };
+  var RANGE_LABELS = {
+    day: { 7: "Laatste 7 dagen", 14: "Laatste 14 dagen", 30: "Laatste 30 dagen" },
+    week: { 4: "Laatste 4 weken", 8: "Laatste 8 weken", 12: "Laatste 12 weken" },
+    month: { 3: "Laatste 3 maanden", 6: "Laatste 6 maanden", 12: "Laatste 12 maanden" }
+  };
+
+  function refreshRangeSelect() {
+    document.querySelectorAll("#groupingSeg .seg-btn").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-group") === insight.grouping);
+    });
+    var sel = document.getElementById("rangeSelect");
+    var opts = RANGE_OPTIONS[insight.grouping];
+    var current = insight.rangeCountByGrouping[insight.grouping];
+    sel.innerHTML = opts.map(function (n) {
+      return '<option value="' + n + '"' + (n === current ? " selected" : "") + '>' + RANGE_LABELS[insight.grouping][n] + "</option>";
+    }).join("");
+  }
+
+  document.querySelectorAll("#groupingSeg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      insight.grouping = btn.getAttribute("data-group");
+      refreshRangeSelect();
+      subscribeInsights();
+    });
+  });
+  document.getElementById("rangeSelect").addEventListener("change", function () {
+    insight.rangeCountByGrouping[insight.grouping] = parseInt(this.value, 10);
+    subscribeInsights();
+  });
+  document.getElementById("viewToggleBtn").addEventListener("click", function () {
+    insight.viewMode = insight.viewMode === "chart" ? "table" : "chart";
+    document.getElementById("viewToggleBtn").textContent = insight.viewMode === "chart" ? "Bekijk als tabel" : "Bekijk als grafiek";
+    renderInsights();
+  });
+  refreshRangeSelect();
+
+  function computeRange() {
+    var g = insight.grouping;
+    var n = insight.rangeCountByGrouping[g];
+    var endDate = todayStr();
+    var startDate;
+    if (g === "day") {
+      startDate = shiftDate(endDate, -(n - 1));
+    } else if (g === "week") {
+      var endMonday = mondayOf(endDate);
+      startDate = shiftDate(endMonday, -7 * (n - 1));
+    } else {
+      var endYM = endDate.slice(0, 7);
+      startDate = shiftMonth(endYM, -(n - 1)) + "-01";
+    }
+    return { startDate: startDate, endDate: endDate };
+  }
+
+  function bucketKeyFor(dateStr, grouping) {
+    if (grouping === "day") return dateStr;
+    if (grouping === "week") return mondayOf(dateStr);
+    return dateStr.slice(0, 7);
+  }
+
+  function enumerateBuckets(startDate, endDate, grouping) {
+    var keys = [];
+    if (grouping === "day") {
+      var cur = startDate;
+      while (cur <= endDate) { keys.push(cur); cur = shiftDate(cur, 1); }
+    } else if (grouping === "week") {
+      var curW = mondayOf(startDate);
+      var endMonday = mondayOf(endDate);
+      while (curW <= endMonday) { keys.push(curW); curW = shiftDate(curW, 7); }
+    } else {
+      var curM = startDate.slice(0, 7);
+      var endM = endDate.slice(0, 7);
+      while (curM <= endM) { keys.push(curM); curM = shiftMonth(curM, 1); }
+    }
+    return keys;
+  }
+
+  function bucketLabel(key, grouping) {
+    if (grouping === "day") {
+      return new Date(key + "T12:00:00").toLocaleDateString("nl-BE", { day: "numeric", month: "short" });
+    }
+    if (grouping === "week") {
+      var s = new Date(key + "T12:00:00").toLocaleDateString("nl-BE", { day: "numeric", month: "short" });
+      var e = new Date(shiftDate(key, 6) + "T12:00:00").toLocaleDateString("nl-BE", { day: "numeric", month: "short" });
+      return s + "–" + e;
+    }
+    return new Date(key + "-01T12:00:00").toLocaleDateString("nl-BE", { month: "short", year: "2-digit" });
+  }
+
+  function bucketTitle(key, grouping) {
+    if (grouping === "day") {
+      return new Date(key + "T12:00:00").toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" });
+    }
+    if (grouping === "week") {
+      var s = new Date(key + "T12:00:00").toLocaleDateString("nl-BE", { day: "numeric", month: "short" });
+      var e = new Date(shiftDate(key, 6) + "T12:00:00").toLocaleDateString("nl-BE", { day: "numeric", month: "short" });
+      return "week " + s + "–" + e;
+    }
+    return new Date(key + "-01T12:00:00").toLocaleDateString("nl-BE", { month: "long", year: "numeric" });
+  }
+
+  function niceStep(maxHours) {
+    var steps = [0.5, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 72, 96];
+    for (var i = 0; i < steps.length; i++) { if (maxHours / steps[i] <= 4) return steps[i]; }
+    return steps[steps.length - 1];
+  }
+
+  function subscribeInsights() {
+    if (!entriesCol) return;
+    if (insight.unsub) { insight.unsub(); insight.unsub = null; }
+    var range = computeRange();
+    var q = entriesCol.where("date", ">=", range.startDate).where("date", "<=", range.endDate).orderBy("date", "asc");
+    insight.unsub = q.onSnapshot(function (snap) {
+      insight.entries = snap.docs.map(toEntry);
+      renderInsights();
+    }, function () {
+      insight.entries = [];
+      renderInsights();
+    });
+  }
+
+  function computeInsightData() {
+    var range = computeRange();
+    var bucketKeys = enumerateBuckets(range.startDate, range.endDate, insight.grouping);
+    var bucketMap = {};
+    bucketKeys.forEach(function (k) { bucketMap[k] = { key: k, projects: {}, total: 0 }; });
+    var projMeta = {};
+    var now = Date.now();
+    insight.entries.forEach(function (e) {
+      var bk = bucketKeyFor(e.date, insight.grouping);
+      if (!bucketMap[bk]) return;
+      var sec = e.endTs == null ? (now - e.startTs) / 1000 : e.durationSec;
+      if (!projMeta[e.projectId]) projMeta[e.projectId] = { id: e.projectId, name: e.projectName, color: e.projectColor, colorIdx: e.projectColorIdx, total: 0 };
+      projMeta[e.projectId].name = e.projectName;
+      projMeta[e.projectId].color = e.projectColor;
+      projMeta[e.projectId].colorIdx = e.projectColorIdx;
+      projMeta[e.projectId].total += sec;
+      if (insight.excluded[e.projectId]) return;
+      var b = bucketMap[bk];
+      b.projects[e.projectId] = (b.projects[e.projectId] || 0) + sec;
+      b.total += sec;
+    });
+    var projList = Object.keys(projMeta).map(function (pid) { return projMeta[pid]; })
+      .sort(function (a, b) { return b.total - a.total; });
+    return { buckets: bucketKeys.map(function (k) { return bucketMap[k]; }), projects: projList };
+  }
+
+  function renderInsights() {
+    if (!document.getElementById("insightsView")) return;
+    var data = computeInsightData();
+    renderChips(data);
+    renderStatTiles(data);
+    document.getElementById("chartArea").hidden = insight.viewMode !== "chart";
+    document.getElementById("tableMount").hidden = insight.viewMode !== "table";
+    if (insight.viewMode === "chart") renderChart(data);
+    else renderTable(data);
+  }
+
+  function renderChips(data) {
+    var mount = document.getElementById("chipRow");
+    if (!data.projects.length) {
+      mount.innerHTML = '<div class="day-empty" style="padding:8px 2px">Nog geen projecten met uren in deze periode.</div>';
+      return;
+    }
+    mount.innerHTML = data.projects.map(function (p) {
+      var hex = seriesColor(p.colorIdx, p.color);
+      var off = !!insight.excluded[p.id];
+      return '<button class="chip' + (off ? " chip-off" : "") + '" data-chip="' + p.id + '">' +
+        '<span class="chip-dot" style="background:' + hex + '"></span>' + esc(p.name) +
+        '<span class="chip-total">' + fmtDuration(p.total) + "</span>" +
+      "</button>";
+    }).join("");
+    mount.querySelectorAll("[data-chip]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var pid = btn.getAttribute("data-chip");
+        insight.excluded[pid] = !insight.excluded[pid];
+        renderInsights();
+      });
+    });
+  }
+
+  function renderStatTiles(data) {
+    var mount = document.getElementById("statTiles");
+    var total = 0, activeBuckets = 0;
+    data.buckets.forEach(function (b) { total += b.total; if (b.total > 30) activeBuckets++; });
+    var avg = activeBuckets ? total / activeBuckets : 0;
+    var unitLabel = insight.grouping === "day" ? "dag" : insight.grouping === "week" ? "week" : "maand";
+    mount.innerHTML =
+      '<div class="stat-tile"><div class="stat-label">Totaal</div><div class="stat-value">' + fmtDuration(total) + "</div></div>" +
+      '<div class="stat-tile"><div class="stat-label">Gem. per actieve ' + unitLabel + '</div><div class="stat-value">' + fmtDuration(avg) + "</div></div>";
+  }
+
+  function hideTooltip() {
+    tooltipBucketKey = null;
+    var tt = document.getElementById("chartTooltip");
+    if (tt) tt.hidden = true;
+  }
+  function positionTooltip(ev) {
+    var tt = document.getElementById("chartTooltip");
+    if (tt.hidden) return;
+    var wrap = document.getElementById("chartArea");
+    var wrapRect = wrap.getBoundingClientRect();
+    tt.style.left = (ev.clientX - wrapRect.left) + "px";
+    tt.style.top = Math.max(0, ev.clientY - wrapRect.top - 8) + "px";
+  }
+  function showTooltip(bucket, included, ev) {
+    tooltipBucketKey = bucket.key;
+    var tt = document.getElementById("chartTooltip");
+    var rows = included.map(function (p) {
+      var sec = bucket.projects[p.id] || 0;
+      if (sec <= 0) return "";
+      var hex = seriesColor(p.colorIdx, p.color);
+      return '<div class="tt-row"><span class="tt-dot" style="background:' + hex + '"></span>' + esc(p.name) + '<span class="tt-val">' + fmtDuration(sec) + "</span></div>";
+    }).join("");
+    tt.innerHTML = '<div class="tt-head">' + esc(bucketTitle(bucket.key, insight.grouping)) + "</div>" +
+      (rows || '<div class="tt-row" style="opacity:.7">geen uren</div>') +
+      '<div class="tt-row" style="border-top:1px solid rgba(255,255,255,.2);margin-top:4px;padding-top:4px;font-weight:600">Totaal<span class="tt-val">' + fmtDuration(bucket.total) + "</span></div>";
+    tt.hidden = false;
+    positionTooltip(ev);
+  }
+
+  function renderChart(data) {
+    hideTooltip();
+    var mount = document.getElementById("chartMount");
+    var buckets = data.buckets;
+    var hasAny = buckets.some(function (b) { return b.total > 0; });
+    if (!buckets.length || !hasAny) {
+      mount.innerHTML = '<div class="chart-empty">Nog geen gegevens in deze periode.</div>';
+      return;
+    }
+    var included = data.projects.filter(function (p) { return !insight.excluded[p.id]; });
+    var CHART_H = 150, BAND_W = 40, BAR_W = 22, AXIS_W = 34, TOP_PAD = 20;
+    var rotateLabels = buckets.length > 8;
+    var BOTTOM_PAD = rotateLabels ? 42 : 24;
+
+    var maxHours = 0;
+    buckets.forEach(function (b) { var h = b.total / 3600; if (h > maxHours) maxHours = h; });
+    var step = niceStep(maxHours || 1);
+    var topTick = Math.max(step, Math.ceil((maxHours || 0.01) / step) * step);
+    var svgW = AXIS_W + buckets.length * BAND_W + 8;
+    var svgH = TOP_PAD + CHART_H + BOTTOM_PAD;
+
+    function yFor(hours) { return TOP_PAD + CHART_H * (1 - hours / topTick); }
+
+    var gridSvg = "";
+    for (var t = 0; t <= topTick + 0.0001; t += step) {
+      var tk = Math.round(t * 100) / 100;
+      var y = yFor(tk);
+      gridSvg += '<line x1="' + AXIS_W + '" y1="' + y + '" x2="' + (svgW - 4) + '" y2="' + y + '" stroke="var(--rule)" stroke-width="1"/>';
+      gridSvg += '<text x="' + (AXIS_W - 6) + '" y="' + (y + 3) + '" text-anchor="end" font-size="9.5" font-family="IBM Plex Mono, monospace" fill="var(--ink-faint)">' + tk + "u</text>";
+    }
+
+    var maxIdx = 0;
+    buckets.forEach(function (b, i) { if (b.total > buckets[maxIdx].total) maxIdx = i; });
+
+    var barsSvg = "", labelsSvg = "", hitSvg = "";
+    buckets.forEach(function (b, i) {
+      var x = AXIS_W + i * BAND_W + (BAND_W - BAR_W) / 2;
+      var cum = 0;
+      var segs = [];
+      included.forEach(function (p) {
+        var sec = b.projects[p.id] || 0;
+        if (sec <= 0) return;
+        var h = sec / 3600;
+        segs.push({ p: p, from: cum, to: cum + h });
+        cum += h;
+      });
+      segs.forEach(function (seg, si) {
+        var yTop = yFor(seg.to), yBottom = yFor(seg.from);
+        var hex = seriesColor(seg.p.colorIdx, seg.p.color);
+        var isTop = si === segs.length - 1;
+        if (isTop) {
+          var r = Math.max(0, Math.min(4, yBottom - yTop));
+          barsSvg += '<path d="M' + x + "," + yBottom + " L" + x + "," + (yTop + r) +
+            " Q" + x + "," + yTop + " " + (x + r) + "," + yTop +
+            " L" + (x + BAR_W - r) + "," + yTop +
+            " Q" + (x + BAR_W) + "," + yTop + " " + (x + BAR_W) + "," + (yTop + r) +
+            " L" + (x + BAR_W) + "," + yBottom + ' Z" fill="' + hex + '"/>';
+        } else {
+          barsSvg += '<rect x="' + x + '" y="' + yTop + '" width="' + BAR_W + '" height="' + (yBottom - yTop) + '" fill="' + hex + '"/>';
+        }
+        if (si > 0) {
+          barsSvg += '<rect x="' + x + '" y="' + (yBottom - 1) + '" width="' + BAR_W + '" height="2" fill="var(--paper-raised)"/>';
+        }
+      });
+      if (i === maxIdx && b.total > 0) {
+        var topY = yFor(cum);
+        labelsSvg += '<text x="' + (x + BAR_W / 2) + '" y="' + (topY - 6) + '" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="var(--ink)">' + fmtDuration(b.total) + "</text>";
+      }
+      var lx = x + BAR_W / 2, ly = TOP_PAD + CHART_H + 14;
+      var lbl = bucketLabel(b.key, insight.grouping);
+      if (rotateLabels) {
+        labelsSvg += '<text x="' + lx + '" y="' + ly + '" text-anchor="end" font-size="9.5" font-family="IBM Plex Sans, sans-serif" fill="var(--ink-soft)" transform="rotate(-40 ' + lx + " " + ly + ')">' + esc(lbl) + "</text>";
+      } else {
+        labelsSvg += '<text x="' + lx + '" y="' + ly + '" text-anchor="middle" font-size="10" font-family="IBM Plex Sans, sans-serif" fill="var(--ink-soft)">' + esc(lbl) + "</text>";
+      }
+      hitSvg += '<rect class="chart-bar-hit" data-bucket-idx="' + i + '" x="' + (AXIS_W + i * BAND_W) + '" y="0" width="' + BAND_W + '" height="' + (TOP_PAD + CHART_H) + '"/>';
+    });
+
+    var baselineY = TOP_PAD + CHART_H;
+    var axisLine = '<line x1="' + AXIS_W + '" y1="' + baselineY + '" x2="' + (svgW - 4) + '" y2="' + baselineY + '" stroke="var(--ink-faint)" stroke-width="1"/>';
+
+    mount.innerHTML =
+      '<svg viewBox="0 0 ' + svgW + " " + svgH + '" width="' + svgW + '" height="' + svgH + '" role="img" aria-label="Uren per periode, per project">' +
+        gridSvg + barsSvg + axisLine + labelsSvg + hitSvg +
+      "</svg>";
+
+    var svgEl = mount.querySelector("svg");
+    svgEl.querySelectorAll("[data-bucket-idx]").forEach(function (hit) {
+      var idx = parseInt(hit.getAttribute("data-bucket-idx"), 10);
+      hit.addEventListener("mouseenter", function (ev) { showTooltip(buckets[idx], included, ev); });
+      hit.addEventListener("mousemove", function (ev) { positionTooltip(ev); });
+      hit.addEventListener("mouseleave", hideTooltip);
+      hit.addEventListener("click", function (ev) {
+        if (tooltipBucketKey === buckets[idx].key) { hideTooltip(); return; }
+        showTooltip(buckets[idx], included, ev);
+      });
+    });
+  }
+
+  function renderTable(data) {
+    var mount = document.getElementById("tableMount");
+    var included = data.projects.filter(function (p) { return !insight.excluded[p.id]; });
+    if (!data.buckets.length || !included.length) {
+      mount.innerHTML = '<div class="chart-empty">Nog geen gegevens in deze periode.</div>';
+      return;
+    }
+    var head = "<tr><th>Periode</th>" + included.map(function (p) { return "<th>" + esc(p.name) + "</th>"; }).join("") + '<th class="tot">Totaal</th></tr>';
+    var rows = data.buckets.map(function (b) {
+      var cells = included.map(function (p) {
+        var sec = b.projects[p.id] || 0;
+        return "<td>" + (sec > 0 ? fmtDuration(sec) : "–") + "</td>";
+      }).join("");
+      return "<tr><td>" + esc(bucketLabel(b.key, insight.grouping)) + "</td>" + cells + '<td class="tot">' + (b.total > 0 ? fmtDuration(b.total) : "–") + "</td></tr>";
+    }).join("");
+    mount.innerHTML = '<div class="table-scroll"><table class="insight-table"><thead>' + head + "</thead><tbody>" + rows + "</tbody></table></div>";
+  }
+
+  // ---------------- boot ----------------
+  function boot(uid) {
+    projectsCol = makeCollection("users/" + uid + "/projects");
+    entriesCol = makeCollection("users/" + uid + "/entries");
+
+    projectsCol.orderBy("createdAt", "asc").onSnapshot(function (snap) {
+      projects = snap.docs.map(toEntry);
+      renderProjects();
+      if (ui.editingProjectId) wireProjectForm(projects.find(function (p) { return p.id === ui.editingProjectId; }));
+      if (ui.addProjectOpen) wireProjectForm(null);
+      renderManualForm();
+    }, function () {});
+
+    var t = todayStr();
+    var tq = entriesCol.where("date", "==", t).orderBy("startTs", "asc");
+    tq.onSnapshot(function (snap) {
+      todayEntries = snap.docs.map(toEntry);
+      renderProjects();
+      if (ui.editingProjectId) wireProjectForm(projects.find(function (p) { return p.id === ui.editingProjectId; }));
+      if (ui.addProjectOpen) wireProjectForm(null);
+      renderLive();
+      if (selectedDate === t) { logEntries = todayEntries; renderLog(); }
+    }, function () {});
+
+    subscribeLog();
+    renderLive();
+    renderManualForm();
+    subscribeInsights();
+
+    try {
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
+        renderProjects();
+        renderLog();
+        renderInsights();
+      });
+    } catch (e) {}
+  }
+
+  // ---------------- auth wiring ----------------
+  var authMode = "signin";
+  function authErrorMessage(code) {
+    var map = {
+      "auth/invalid-email": "Ongeldig e-mailadres.",
+      "auth/user-not-found": "Geen account gevonden met dit e-mailadres.",
+      "auth/wrong-password": "Verkeerd wachtwoord.",
+      "auth/invalid-credential": "E-mailadres of wachtwoord klopt niet.",
+      "auth/email-already-in-use": "Er bestaat al een account met dit e-mailadres.",
+      "auth/weak-password": "Wachtwoord moet minstens 6 tekens lang zijn.",
+      "auth/network-request-failed": "Geen verbinding — controleer je internet."
+    };
+    return map[code] || "Er ging iets mis. Probeer opnieuw.";
+  }
+  document.getElementById("authToggle").addEventListener("click", function () {
+    authMode = authMode === "signin" ? "signup" : "signin";
+    document.getElementById("authSubmit").textContent = authMode === "signin" ? "Inloggen" : "Account aanmaken";
+    document.getElementById("authToggle").textContent = authMode === "signin" ? "Nog geen account? Account aanmaken" : "Heb je al een account? Inloggen";
+    document.getElementById("authError").style.display = "none";
+  });
+  document.getElementById("authSubmit").addEventListener("click", function () {
+    var email = document.getElementById("authEmail").value.trim();
+    var pass = document.getElementById("authPassword").value;
+    var err = document.getElementById("authError");
+    err.style.display = "none";
+    if (!email || !pass) { err.textContent = "Vul e-mailadres en wachtwoord in."; err.style.display = "block"; return; }
+    var action = authMode === "signin"
+      ? signInWithEmailAndPassword(auth, email, pass)
+      : createUserWithEmailAndPassword(auth, email, pass);
+    action.catch(function (e) {
+      err.textContent = authErrorMessage(e.code);
+      err.style.display = "block";
+    });
+  });
+  document.getElementById("logoutBtn").addEventListener("click", function () { signOut(auth); });
+
+  onAuthStateChanged(auth, function (user) {
+    if (user) {
+      document.getElementById("authScreen").hidden = true;
+      document.getElementById("app").hidden = false;
+      document.getElementById("logoutInfo").textContent = "ingelogd als " + user.email;
+      boot(user.uid);
+    } else {
+      document.getElementById("authScreen").hidden = false;
+      document.getElementById("app").hidden = true;
+    }
+  });
+})();
+</script>
+</body>
+</html>
