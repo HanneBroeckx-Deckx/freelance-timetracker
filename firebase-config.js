@@ -4,7 +4,7 @@
 // ze identificeren enkel je Firebase-project. De echte beveiliging zit in de
 // Firestore-regels (zie SETUP.md).
 export const firebaseConfig = {
-  apiKey: "AIzaSyB1•••••••••••••••••••••••••••••••",
+  apiKey: "AIzaSyB1GwHDOjr2uX1UOsdeqk0e95QnU4_fnAc",
   authDomain: "uurstaat.firebaseapp.com",
   projectId: "uurstaat",
   storageBucket: "uurstaat.firebasestorage.app",
