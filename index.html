@@ -5,55 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Uurstaat</title>
 <meta name="description" content="Tijdregistratie voor freelancers: apart timen per project of taak, met een dagoverzicht van alles wat je hebt gedaan.">
-<meta name="theme-color" content="#2E4374">
+<meta name="theme-color" content="#0D40F3">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
   :root {
-    --paper: #EAE7DD;
-    --paper-raised: #F5F3EA;
-    --ink: #1B1D22;
-    --ink-soft: #5B5F6B;
-    --ink-faint: #8B8E97;
-    --rule: #D3CFC0;
-    --accent: #2E4374;
-    --accent-soft: #DCE3EF;
-    --live: #B23A2E;
-    --live-soft: #F3DCD8;
-    --shadow: rgba(27, 29, 34, 0.08);
+    --paper: #F2F5FF;
+    --paper-raised: #FFFFFF;
+    --ink: #111539;
+    --ink-soft: #565D85;
+    --ink-faint: #969CBE;
+    --rule: #DCE3FF;
+    --accent: #0D40F3;
+    --accent-soft: #B1C2FF;
+    --live: #A32BC9;
+    --live-soft: #E2A9F1;
+    --shadow: rgba(17, 21, 57, 0.10);
+
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --r-pill: 999px;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper: #15171C;
-      --paper-raised: #1E2127;
-      --ink: #ECE9DF;
-      --ink-soft: #9A9DA8;
-      --ink-faint: #6C6F79;
-      --rule: #2C2F37;
-      --accent: #86A3E0;
-      --accent-soft: #24314A;
-      --live: #E2685C;
-      --live-soft: #3A2220;
-      --shadow: rgba(0, 0, 0, 0.35);
+      --paper: #0E1130;
+      --paper-raised: #181C41;
+      --ink: #E9ECFF;
+      --ink-soft: #A6ADD4;
+      --ink-faint: #737AA2;
+      --rule: #2B3168;
+      --accent: #B1C2FF;
+      --accent-soft: #242F73;
+      --live: #E2A9F1;
+      --live-soft: #4B2B5E;
+      --shadow: rgba(0, 0, 0, 0.45);
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --paper: #15171C;
-    --paper-raised: #1E2127;
-    --ink: #ECE9DF;
-    --ink-soft: #9A9DA8;
-    --ink-faint: #6C6F79;
-    --rule: #2C2F37;
-    --accent: #86A3E0;
-    --accent-soft: #24314A;
-    --live: #E2685C;
-    --live-soft: #3A2220;
-    --shadow: rgba(0, 0, 0, 0.35);
+    --paper: #0E1130;
+    --paper-raised: #181C41;
+    --ink: #E9ECFF;
+    --ink-soft: #A6ADD4;
+    --ink-faint: #737AA2;
+    --rule: #2B3168;
+    --accent: #B1C2FF;
+    --accent-soft: #242F73;
+    --live: #E2A9F1;
+    --live-soft: #4B2B5E;
+    --shadow: rgba(0, 0, 0, 0.45);
     color-scheme: dark;
   }
 
@@ -89,7 +94,7 @@
     max-width: 340px;
     border: 1px solid var(--rule);
     background: var(--paper-raised);
-    border-radius: 6px;
+    border-radius: var(--r-lg);
     padding: 26px 22px;
     box-shadow: 0 2px 10px var(--shadow);
   }
@@ -103,10 +108,11 @@
     padding-bottom: 4px;
   }
   .wordmark {
-    font-family: 'Fraunces', serif;
-    font-size: 22px;
-    font-weight: 600;
+    font-family: 'Bagel Fat One', system-ui, cursive;
+    font-size: 26px;
+    font-weight: 400;
     letter-spacing: 0.2px;
+    color: var(--accent);
   }
   .wordmark .dot { color: var(--live); }
   .today-date {
@@ -127,7 +133,7 @@
     border: 1px solid var(--rule);
     background: var(--paper-raised);
     color: var(--ink-soft);
-    border-radius: 3px;
+    border-radius: var(--r-sm);
     cursor: pointer;
     font-family: 'IBM Plex Sans', sans-serif;
   }
@@ -135,7 +141,7 @@
 
   /* ---------- live panel ---------- */
   .live-panel {
-    border-radius: 4px;
+    border-radius: var(--r-md);
     border: 1px solid var(--rule);
     background: var(--paper-raised);
     padding: 16px;
@@ -144,7 +150,10 @@
     gap: 10px;
     box-shadow: 0 1px 2px var(--shadow);
   }
-  .live-panel.is-active { border-color: var(--live); }
+  .live-panel.is-active {
+    border-color: var(--live-soft);
+    background: color-mix(in srgb, var(--live-soft) 20%, var(--paper-raised));
+  }
   .live-top {
     display: flex;
     align-items: center;
@@ -208,7 +217,7 @@
     font-size: 12px;
     letter-spacing: 0.5px;
     padding: 7px 14px;
-    border-radius: 3px;
+    border-radius: var(--r-sm);
     cursor: pointer;
   }
   .btn-stop:hover { opacity: 0.9; }
@@ -308,7 +317,7 @@
     border: 1px solid var(--rule);
     background: var(--paper);
     color: var(--ink);
-    border-radius: 3px;
+    border-radius: var(--r-sm);
     padding: 8px 9px;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 13.5px;
@@ -333,13 +342,38 @@
     color: var(--ink);
     font-size: 13px;
     padding: 7px 14px;
-    border-radius: 3px;
+    border-radius: var(--r-sm);
     cursor: pointer;
     font-family: 'IBM Plex Sans', sans-serif;
   }
   .btn:hover { border-color: var(--ink-faint); }
   .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--paper-raised); }
   .btn-primary:hover { opacity: 0.9; }
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 12px;
+    color: var(--ink-faint);
+    font-size: 12px;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+  .btn-google {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .btn-google:disabled { opacity: 0.6; cursor: default; }
   .btn-text {
     background: none; border: none; color: var(--ink-soft);
     font-size: 12.5px; cursor: pointer; text-decoration: underline;
@@ -356,8 +390,9 @@
     padding: 0 2px 10px;
   }
   .day-nav-title {
-    font-family: 'Fraunces', serif;
-    font-size: 16px;
+    font-family: 'Bagel Fat One', system-ui, cursive;
+    font-weight: 400;
+    font-size: 17px;
     text-transform: capitalize;
   }
   .nav-btn {
@@ -374,12 +409,12 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    padding: 10px 2px;
-    border-top: 1px solid var(--ink);
-    border-bottom: 1px solid var(--rule);
-    margin-bottom: 4px;
+    padding: 10px 14px;
+    background: var(--accent-soft);
+    border-radius: var(--r-sm);
+    margin-bottom: 8px;
   }
-  .day-total .lbl { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+  .day-total .lbl { font-size: 12px; color: var(--ink); text-transform: uppercase; letter-spacing: 0.5px; }
   .day-total .val {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 18px;
@@ -455,7 +490,7 @@
 
   /* ---------- insights: controls ---------- */
   .insight-controls { display: flex; gap: 10px; align-items: center; padding-bottom: 12px; flex-wrap: wrap; }
-  .segmented { display: flex; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; flex: none; }
+  .segmented { display: flex; border: 1px solid var(--rule); border-radius: var(--r-sm); overflow: hidden; flex: none; }
   .seg-btn {
     border: none; background: var(--paper-raised); color: var(--ink-soft);
     font-size: 12.5px; padding: 7px 12px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
@@ -469,7 +504,7 @@
   .chip {
     display: flex; align-items: center; gap: 6px;
     border: 1px solid var(--rule); background: var(--paper-raised);
-    border-radius: 20px; padding: 5px 10px 5px 8px; font-size: 12px; color: var(--ink);
+    border-radius: var(--r-pill); padding: 5px 10px 5px 8px; font-size: 12px; color: var(--ink);
     cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
   }
   .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
@@ -479,7 +514,7 @@
 
   /* ---------- insights: stat tiles ---------- */
   .stat-tiles { display: flex; gap: 10px; padding-bottom: 16px; }
-  .stat-tile { flex: 1; border: 1px solid var(--rule); background: var(--paper-raised); border-radius: 4px; padding: 10px 12px; }
+  .stat-tile { flex: 1; border: 1px solid var(--rule); background: var(--paper-raised); border-radius: var(--r-md); padding: 10px 12px; }
   .stat-label { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
   .stat-value { font-size: 20px; font-weight: 500; }
 
@@ -490,7 +525,7 @@
   .chart-tooltip {
     position: absolute; pointer-events: none;
     background: var(--ink); color: var(--paper);
-    border-radius: 4px; padding: 8px 10px; font-size: 11.5px;
+    border-radius: var(--r-md); padding: 8px 10px; font-size: 11.5px;
     box-shadow: 0 2px 8px var(--shadow); z-index: 5; min-width: 130px;
     transform: translate(-50%, -100%);
   }
@@ -502,7 +537,7 @@
   .chart-bar-hit:hover { fill: color-mix(in srgb, var(--ink) 5%, transparent); }
   .chart-empty {
     padding: 32px 2px; text-align: center; color: var(--ink-faint); font-size: 13.5px;
-    border: 1px dashed var(--rule); border-radius: 4px;
+    border: 1px dashed var(--rule); border-radius: var(--r-md);
   }
 
   /* ---------- insights: table ---------- */
@@ -538,6 +573,16 @@
     <div class="form-error" id="authError" style="display:none;margin-top:8px"></div>
     <button class="btn btn-primary" id="authSubmit" style="margin-top:14px;width:100%">Inloggen</button>
     <button class="btn-text" id="authToggle" style="margin-top:10px;display:block;text-align:center;width:100%">Nog geen account? Account aanmaken</button>
+    <div class="auth-divider"><span>of</span></div>
+    <button class="btn btn-google" id="authGoogle">
+      <svg viewBox="0 0 18 18" width="17" height="17" aria-hidden="true" focusable="false">
+        <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/>
+        <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z"/>
+        <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+      </svg>
+      <span>Doorgaan met Google</span>
+    </button>
   </div>
 </div>
 
@@ -606,7 +651,8 @@ import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, signOut
+  createUserWithEmailAndPassword, signOut,
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
@@ -662,6 +708,7 @@ function makeQuery(q) {
 
   // ---------------- utilities ----------------
   function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  function byStartTs(a, b) { return (a.startTs || 0) - (b.startTs || 0); }
   function ymd(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
   function todayStr() { return ymd(new Date()); }
   function shiftDate(dateStr, delta) {
@@ -736,6 +783,7 @@ function makeQuery(q) {
   var logEntries = [];
   var selectedDate = todayStr();
   var logUnsub = null;
+  var bootUnsubs = [];
   var tickHandle = null;
 
   var ui = {
@@ -882,6 +930,12 @@ function makeQuery(q) {
       ui.pendingIdx = projects.length % PALETTE_LIGHT.length;
       renderProjects();
     });
+
+    if (ui.addProjectOpen) {
+      wireProjectForm(null);
+    } else if (ui.editingProjectId) {
+      wireProjectForm(projects.find(function (p) { return p.id === ui.editingProjectId; }));
+    }
   }
 
   function projectEditFormHtml(p) {
@@ -1160,11 +1214,12 @@ function makeQuery(q) {
       renderLog();
       return;
     }
-    var q = entriesCol.where("date", "==", selectedDate).orderBy("startTs", "asc");
+    var q = entriesCol.where("date", "==", selectedDate);
     logUnsub = q.onSnapshot(function (snap) {
-      logEntries = snap.docs.map(toEntry);
+      logEntries = snap.docs.map(toEntry).sort(byStartTs);
       renderLog();
-    }, function () {
+    }, function (e) {
+      console.error("[uurstaat] dagoverzicht laden mislukt:", e);
       logEntries = [];
       renderLog();
     });
@@ -1526,24 +1581,24 @@ function makeQuery(q) {
     projectsCol = makeCollection("users/" + uid + "/projects");
     entriesCol = makeCollection("users/" + uid + "/entries");
 
-    projectsCol.orderBy("createdAt", "asc").onSnapshot(function (snap) {
+    bootUnsubs.push(projectsCol.orderBy("createdAt", "asc").onSnapshot(function (snap) {
       projects = snap.docs.map(toEntry);
       renderProjects();
       if (ui.editingProjectId) wireProjectForm(projects.find(function (p) { return p.id === ui.editingProjectId; }));
       if (ui.addProjectOpen) wireProjectForm(null);
       renderManualForm();
-    }, function () {});
+    }, function (e) { console.error("[uurstaat] projecten laden mislukt:", e); }));
 
     var t = todayStr();
-    var tq = entriesCol.where("date", "==", t).orderBy("startTs", "asc");
-    tq.onSnapshot(function (snap) {
-      todayEntries = snap.docs.map(toEntry);
+    var tq = entriesCol.where("date", "==", t);
+    bootUnsubs.push(tq.onSnapshot(function (snap) {
+      todayEntries = snap.docs.map(toEntry).sort(byStartTs);
       renderProjects();
       if (ui.editingProjectId) wireProjectForm(projects.find(function (p) { return p.id === ui.editingProjectId; }));
       if (ui.addProjectOpen) wireProjectForm(null);
       renderLive();
       if (selectedDate === t) { logEntries = todayEntries; renderLog(); }
-    }, function () {});
+    }, function (e) { console.error("[uurstaat] uren van vandaag laden mislukt:", e); }));
 
     subscribeLog();
     renderLive();
@@ -1569,7 +1624,10 @@ function makeQuery(q) {
       "auth/invalid-credential": "E-mailadres of wachtwoord klopt niet.",
       "auth/email-already-in-use": "Er bestaat al een account met dit e-mailadres.",
       "auth/weak-password": "Wachtwoord moet minstens 6 tekens lang zijn.",
-      "auth/network-request-failed": "Geen verbinding — controleer je internet."
+      "auth/network-request-failed": "Geen verbinding — controleer je internet.",
+      "auth/unauthorized-domain": "Deze website staat nog niet in de toegestane domeinen van Firebase.",
+      "auth/account-exists-with-different-credential": "Er bestaat al een account met dit e-mailadres. Log in met je wachtwoord.",
+      "auth/popup-blocked": "Je browser blokkeerde het Google-venster. Sta pop-ups toe en probeer opnieuw."
     };
     return map[code] || "Er ging iets mis. Probeer opnieuw.";
   }
@@ -1595,13 +1653,54 @@ function makeQuery(q) {
   });
   document.getElementById("logoutBtn").addEventListener("click", function () { signOut(auth); });
 
+  var googleBtn = document.getElementById("authGoogle");
+  googleBtn.addEventListener("click", function () {
+    var err = document.getElementById("authError");
+    err.style.display = "none";
+    googleBtn.disabled = true;
+    var provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).catch(function (e) {
+      googleBtn.disabled = false;
+      // Gebruiker klikte het venster weg — geen foutmelding tonen.
+      if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return;
+      // Pop-ups werken niet overal (o.a. sommige PWA-weergaven): val terug op redirect.
+      if (e.code === "auth/popup-blocked" || e.code === "auth/operation-not-supported-in-this-environment") {
+        signInWithRedirect(auth, provider).catch(function (e2) { showAuthError(e2); });
+        return;
+      }
+      showAuthError(e);
+    });
+  });
+  function showAuthError(e) {
+    var err = document.getElementById("authError");
+    err.textContent = authErrorMessage(e.code);
+    err.style.display = "block";
+    console.error("[uurstaat] inloggen mislukt:", e);
+  }
+  getRedirectResult(auth).catch(function (e) { showAuthError(e); });
+
+  // Zonder dit blijven de listeners na uitloggen doorlopen: ze vallen dan
+  // op permission-denied en bij elke nieuwe login komt er een set bij.
+  function teardown() {
+    bootUnsubs.forEach(function (un) { try { un(); } catch (e) {} });
+    bootUnsubs = [];
+    if (logUnsub) { logUnsub(); logUnsub = null; }
+    if (insight.unsub) { insight.unsub(); insight.unsub = null; }
+    if (tickHandle) { clearInterval(tickHandle); tickHandle = null; }
+    projectsCol = null; entriesCol = null;
+    projects = []; todayEntries = []; logEntries = []; insight.entries = [];
+  }
+
   onAuthStateChanged(auth, function (user) {
     if (user) {
+      teardown();
       document.getElementById("authScreen").hidden = true;
       document.getElementById("app").hidden = false;
       document.getElementById("logoutInfo").textContent = "ingelogd als " + user.email;
       boot(user.uid);
     } else {
+      teardown();
+      googleBtn.disabled = false;
       document.getElementById("authScreen").hidden = false;
       document.getElementById("app").hidden = true;
     }
